@@ -39,23 +39,42 @@ export default () => {
   // Storage files list
   r.storageList = reactive({
     busy: false,
-    nextPageToken: false,
-    params: { maxResults: 2 },
+    params: { maxResults: 50 },
+    pages: 0,
     data: [],
-    async submit() {
+    async submit(options = {}) {
+      options = {
+        firstPage: false,
+        ...options,
+      };
+
+      if (
+        !options.firstPage &&
+        r.storageList.pages > 0 &&
+        !r.storageList.params.pageToken
+      )
+        return;
+
       r.storageList.busy = true;
       const storage = fireStorage.getStorage();
       const listRef = fireStorage.ref(storage);
 
-      const firstPage = await fireStorage.list(listRef, r.storageList.params);
+      if (options.firstPage) {
+        r.storageList.pages = 0;
+        r.storageList.params.pageToken = null;
+        r.storageList.data = [];
+      }
 
-      r.storageList.data = await Promise.all(
-        firstPage.items.map(async (snapshotRef) => {
-          return await storeUploadData(snapshotRef);
+      const list = await fireStorage.list(listRef, r.storageList.params);
+
+      await Promise.all(
+        list.items.map(async (snapshotRef) => {
+          r.storageList.data.push(await storeUploadData(snapshotRef));
         })
       );
 
-      r.storageList.nextPageToken = firstPage.nextPageToken;
+      if (list.nextPageToken) r.storageList.pages++;
+      r.storageList.params.pageToken = list.nextPageToken || false;
       r.storageList.busy = false;
     },
 

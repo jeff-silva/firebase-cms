@@ -2,7 +2,9 @@
   <div>
     <v-btn
       @click="
-        firebase.storageList.submit()
+        firebase.storageList.submit({
+          firstPage: true,
+        })
       "
       :loading="
         firebase.storageList.busy
@@ -29,29 +31,45 @@
     />
 
     <v-table class="border ma-4">
+      <colgroup>
+        <col width="150px" />
+        <col width="*" />
+      </colgroup>
       <tbody>
         <template
           v-for="o in firebase
             .storageList.data"
         >
           <tr>
+            <td class="pa-0">
+              <img
+                :src="o.url"
+                alt=""
+                style="
+                  width: 100%;
+                  height: 50px;
+                  margin: 0 0 -6px 0;
+                  object-fit: cover;
+                "
+              />
+            </td>
             <td>{{ o.name }}</td>
           </tr>
         </template>
         <tr
           v-if="
-            firebase.storageList
-              .nextPageToken
+            firebase.storageList.params
+              .pageToken
           "
         >
-          <td>
+          <td colspan="2">
             <v-btn
               :loading="
                 firebase.storageList
                   .busy
               "
               @click="
-                firebase.storageList.loadMore()
+                firebase.storageList.submit()
               "
               >Load more</v-btn
             >
