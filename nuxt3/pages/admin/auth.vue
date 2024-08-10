@@ -2,7 +2,7 @@
   <nuxt-layout name="admin">
     <div class="d-flex flex-column ga-4">
       <div class="d-flex align-center ga-2">
-        <div>Create:</div>
+        <div style="min-width: 100px">Create:</div>
         <v-text-field
           label="E-mail"
           v-model="firebase.authCreate.data.email"
@@ -13,16 +13,29 @@
           v-model="firebase.authCreate.data.password"
           :hide-details="true"
         />
-        <v-btn
-          :loading="firebase.authCreate.busy"
-          @click="firebase.authCreate.submit()"
-        >
-          Create
-        </v-btn>
+        <div style="min-width: 150px; max-width: 150px">
+          <v-btn
+            block
+            :loading="firebase.authCreate.busy"
+            @click="
+              async () => {
+                await firebase.authCreate.submit();
+                firebase.userList.submit();
+              }
+            "
+          >
+            Create
+          </v-btn>
+          <small
+            class="text-error"
+            v-if="firebase.authCreate.error"
+            v-html="firebase.authCreate.error"
+          />
+        </div>
       </div>
 
       <div class="d-flex align-center ga-2">
-        <div>Login:</div>
+        <div style="min-width: 100px">Login:</div>
         <v-text-field
           label="E-mail"
           v-model="firebase.authLogin.data.email"
@@ -33,33 +46,44 @@
           v-model="firebase.authLogin.data.password"
           :hide-details="true"
         />
-        <v-btn
-          :loading="firebase.authLogin.busy"
-          @click="firebase.authLogin.submit()"
-        >
-          Login
-        </v-btn>
+        <div style="min-width: 150px; max-width: 150px">
+          <v-btn
+            block
+            :loading="firebase.authLogin.busy"
+            @click="firebase.authLogin.submit()"
+          >
+            Login
+          </v-btn>
+          <small
+            class="text-error"
+            v-if="firebase.authLogin.error"
+            v-html="firebase.authLogin.error"
+          />
+        </div>
       </div>
 
       <div
         class="d-flex align-center ga-2"
         v-if="firebase.auth.user"
       >
-        <div>Logged:</div>
+        <div style="min-width: 100px">Logged:</div>
         <v-avatar size="40">
           <v-img :src="firebase.auth.user.photoURL" />
         </v-avatar>
         <div class="flex-grow-1">{{ firebase.auth.user.displayName }}</div>
-        <v-btn
-          :loading="firebase.authList.busy"
-          @click="firebase.authList.submit()"
-        >
-          Logout
-        </v-btn>
+        <div style="min-width: 150px; max-width: 150px">
+          <v-btn
+            block
+            :loading="firebase.auth.busy"
+            @click="firebase.auth.logout()"
+          >
+            Logout
+          </v-btn>
+        </div>
       </div>
 
       <div class="d-flex align-center ga-2">
-        <div>List:</div>
+        <div style="min-width: 100px">List:</div>
         <div class="flex-grow-1 border">
           <v-table>
             <thead>
@@ -69,12 +93,15 @@
             </thead>
           </v-table>
         </div>
-        <v-btn
-          :loading="firebase.authList.busy"
-          @click="firebase.authList.submit()"
-        >
-          List
-        </v-btn>
+        <div style="min-width: 150px; max-width: 150px">
+          <v-btn
+            block
+            :loading="firebase.userList.busy"
+            @click="firebase.userList.submit()"
+          >
+            List
+          </v-btn>
+        </div>
       </div>
 
       <pre>firebase.authLogin: {{ firebase.authLogin }}</pre>

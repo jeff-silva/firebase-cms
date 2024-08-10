@@ -9,7 +9,8 @@ export default () => {
   r.auth = reactive({
     busy: false,
     ready: false,
-    user: false,
+    user: null,
+    error: null,
     init() {
       if (r.auth.ready) return;
       const auth = fireAuth.getAuth();
@@ -23,10 +24,19 @@ export default () => {
             user.email
           )}`;
         r.auth.user = user;
-        // user.displayName, user.photoURL
       });
     },
-    async logout() {},
+    async logout() {
+      r.auth.busy = true;
+      try {
+        const auth = fireAuth.getAuth();
+        await fireAuth.signOut(auth);
+        r.auth.user = null;
+      } catch (err) {
+        r.auth.error = err.message;
+      }
+      r.auth.busy = false;
+    },
   });
 
   r.auth.init();
@@ -38,8 +48,9 @@ export default () => {
       email: "",
       password: "",
     },
-    error: false,
+    error: null,
     async submit() {
+      r.authCreate.error = null;
       r.authCreate.busy = true;
       try {
         const auth = fireAuth.getAuth();
@@ -50,9 +61,8 @@ export default () => {
         );
         r.authCreate.data.email = "";
         r.authCreate.data.password = "";
-        console.log(user);
       } catch (err) {
-        r.authCreate.error = err;
+        r.authCreate.error = err.message;
       }
       r.authCreate.busy = false;
     },
@@ -65,8 +75,9 @@ export default () => {
       email: "",
       password: "",
     },
-    error: false,
+    error: null,
     async submit() {
+      r.authLogin.error = null;
       r.authLogin.busy = true;
 
       try {
@@ -79,7 +90,7 @@ export default () => {
         r.authLogin.data.email = "";
         r.authLogin.data.password = "";
       } catch (err) {
-        r.authLogin.error = err;
+        r.authLogin.error = err.message;
       }
 
       r.authLogin.busy = false;
@@ -87,24 +98,32 @@ export default () => {
   });
 
   // List users
-  r.authList = reactive({
+  r.userList = reactive({
     busy: false,
-    params: {},
-    error: false,
+    params: { perPage: 50, nextPage: null },
+    error: null,
     async submit() {
-      r.authList.busy = true;
+      r.userList.busy = true;
+
+      const auth = fireAuth.getAuth();
+      const list = await auth.listUsers(
+        r.userList.perPage,
+        r.userList.nextPage
+      );
+      console.log(list);
+
       // try {
       //   const auth = fireAuth.getAuth();
       //   const user = await fireAuth.createUserWithEmailAndPassword(
       //     auth,
-      //     r.authList.data.email,
-      //     r.authList.data.password
+      //     r.userList.data.email,
+      //     r.userList.data.password
       //   );
       //   console.log(user);
       // } catch (err) {
-      //   r.authList.error = err;
+      //   r.userList.error = err.message;
       // }
-      r.authList.busy = false;
+      r.userList.busy = false;
     },
   });
 

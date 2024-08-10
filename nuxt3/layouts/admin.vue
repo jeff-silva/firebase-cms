@@ -1,12 +1,7 @@
 <template>
-  <div class="d-flex ga-2">
+  <div class="d-flex">
     <div
-      style="
-        min-width: 200px;
-        max-width: 200px;
-        height: 100vh;
-        overflow: auto;
-      "
+      style="min-width: 200px; max-width: 200px; height: 100vh; overflow: auto"
     >
       <v-list>
         <v-list-item
@@ -20,11 +15,8 @@
       </v-list>
     </div>
     <div
-      class="flex-grow-1"
-      style="
-        height: 100vh;
-        overflow: auto;
-      "
+      class="flex-grow-1 pa-3"
+      style="height: 100vh; overflow: auto"
     >
       <slot></slot>
     </div>
