@@ -1,6 +1,14 @@
 <template>
   <div>
-    <v-btn>Aaa</v-btn>
+    <v-btn
+      @click="
+        firebase.storageList.submit()
+      "
+      :loading="
+        firebase.storageList.busy
+      "
+      >Storage List</v-btn
+    >
 
     <v-file-input
       label="File input"
@@ -15,14 +23,15 @@
             ev.target.files[0]
           );
           ev.target.value = '';
+          firebase.storageList.submit();
         }
       "
     />
 
     <v-row>
       <template
-        v-for="o in firebase
-          .storageUpload.lastUploads"
+        v-for="o in firebase.storageList
+          .data"
       >
         <v-col cols="4">
           <img
