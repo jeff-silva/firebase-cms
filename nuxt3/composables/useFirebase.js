@@ -1,8 +1,112 @@
 import * as fireStorage from "firebase/storage";
+import * as fireAuth from "firebase/auth";
 import { reactive } from "vue";
 
 export default () => {
   let r = {};
+
+  // Auth currento logged user
+  r.auth = reactive({
+    busy: false,
+    ready: false,
+    user: false,
+    init() {
+      if (r.auth.ready) return;
+      const auth = fireAuth.getAuth();
+      fireAuth.onAuthStateChanged(auth, (user) => {
+        if (!user) return;
+        r.auth.ready = true;
+        user.displayName = user.displayName || user.email;
+        user.photoURL =
+          user.photoURL ||
+          `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${btoa(
+            user.email
+          )}`;
+        r.auth.user = user;
+        // user.displayName, user.photoURL
+      });
+    },
+    async logout() {},
+  });
+
+  r.auth.init();
+
+  // Auth create
+  r.authCreate = reactive({
+    busy: false,
+    data: {
+      email: "",
+      password: "",
+    },
+    error: false,
+    async submit() {
+      r.authCreate.busy = true;
+      try {
+        const auth = fireAuth.getAuth();
+        const user = await fireAuth.createUserWithEmailAndPassword(
+          auth,
+          r.authCreate.data.email,
+          r.authCreate.data.password
+        );
+        r.authCreate.data.email = "";
+        r.authCreate.data.password = "";
+        console.log(user);
+      } catch (err) {
+        r.authCreate.error = err;
+      }
+      r.authCreate.busy = false;
+    },
+  });
+
+  // Auth login
+  r.authLogin = reactive({
+    busy: false,
+    data: {
+      email: "",
+      password: "",
+    },
+    error: false,
+    async submit() {
+      r.authLogin.busy = true;
+
+      try {
+        const auth = fireAuth.getAuth();
+        const user = await fireAuth.signInWithEmailAndPassword(
+          auth,
+          r.authLogin.data.email,
+          r.authLogin.data.password
+        );
+        r.authLogin.data.email = "";
+        r.authLogin.data.password = "";
+      } catch (err) {
+        r.authLogin.error = err;
+      }
+
+      r.authLogin.busy = false;
+    },
+  });
+
+  // List users
+  r.authList = reactive({
+    busy: false,
+    params: {},
+    error: false,
+    async submit() {
+      r.authList.busy = true;
+      // try {
+      //   const auth = fireAuth.getAuth();
+      //   const user = await fireAuth.createUserWithEmailAndPassword(
+      //     auth,
+      //     r.authList.data.email,
+      //     r.authList.data.password
+      //   );
+      //   console.log(user);
+      // } catch (err) {
+      //   r.authList.error = err;
+      // }
+      r.authList.busy = false;
+    },
+  });
 
   // Storage file minimal data
   const storeUploadData = async (snapshotRef) => {
@@ -99,6 +203,14 @@ export default () => {
       r.storageList.busy = false;
     },
   });
+
+  r.firestoreSave = reactive({});
+  r.firestoreList = reactive({});
+  r.firestoreDelete = reactive({});
+
+  r.databaseSave = reactive({});
+  r.databaseList = reactive({});
+  r.databaseDelete = reactive({});
 
   return r;
 };
