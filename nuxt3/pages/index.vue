@@ -28,20 +28,38 @@
       "
     />
 
-    <v-row>
-      <template
-        v-for="o in firebase.storageList
-          .data"
-      >
-        <v-col cols="4">
-          <img
-            :src="o.url"
-            alt=""
-            style="width: 100%"
-          />
-        </v-col>
-      </template>
-    </v-row>
+    <v-table class="border ma-4">
+      <tbody>
+        <template
+          v-for="o in firebase
+            .storageList.data"
+        >
+          <tr>
+            <td>{{ o.name }}</td>
+          </tr>
+        </template>
+        <tr
+          v-if="
+            firebase.storageList
+              .nextPageToken
+          "
+        >
+          <td>
+            <v-btn
+              :loading="
+                firebase.storageList
+                  .busy
+              "
+              @click="
+                firebase.storageList.loadMore()
+              "
+              >Load more</v-btn
+            >
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+
     <pre>firebase: {{ firebase }}</pre>
   </div>
 </template>
