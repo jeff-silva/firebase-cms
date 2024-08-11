@@ -1,6 +1,11 @@
-import * as fireStorage from "firebase/storage";
 import * as fireAuth from "firebase/auth";
+import * as fireStorage from "firebase/storage";
+import * as fireFirestore from "firebase/firestore";
+
 import { reactive } from "vue";
+import { useFirestore } from "vuefire";
+
+import dayjs from "dayjs";
 
 export default () => {
   let r = {};
@@ -20,9 +25,7 @@ export default () => {
         user.displayName = user.displayName || user.email;
         user.photoURL =
           user.photoURL ||
-          `https://api.dicebear.com/7.x/adventurer-neutral/svg?seed=${btoa(
-            user.email
-          )}`;
+          `https://api.dicebear.com/9.x/big-smile/svg?seed=${btoa(user.email)}`;
         r.auth.user = user;
       });
     },
@@ -223,8 +226,125 @@ export default () => {
     },
   });
 
-  r.firestoreSave = reactive({});
-  r.firestoreList = reactive({});
+  r.firestoreSave = (options = {}) => {
+    options = {
+      collection: null,
+      data: {},
+      ...options,
+    };
+
+    const r = reactive({
+      busy: false,
+      collection: options.collection,
+      data: options.data,
+      error: null,
+      submit() {
+        return new Promise(async (resolve, reject) => {
+          r.busy = true;
+
+          try {
+            const db = useFirestore();
+            const collection = fireFirestore.collection(db, options.collection);
+
+            if (r.data.id) {
+              const docRef = await fireFirestore.doc(
+                db,
+                options.collection,
+                r.data.id
+              );
+              r.data.updatedAt = dayjs().format();
+              const dataRef = await fireFirestore.updateDoc(docRef, r.data);
+              resolve(dataRef);
+            } else {
+              r.data.createdAt = r.data.updatedAt = dayjs().format();
+              const dataRef = await fireFirestore.addDoc(collection, r.data);
+              r.data.id = dataRef.id;
+              resolve(dataRef);
+              r.submit();
+            }
+          } catch (err) {
+            reject((r.error = err.message));
+          }
+
+          r.busy = false;
+        });
+      },
+      dataClear() {
+        r.data = {};
+        console.log("aaaa");
+      },
+    });
+
+    return r;
+  };
+
+  r.firestoreList = (options = {}) => {
+    options = {
+      collection: null,
+      params: { limit: 5, startAfter: null },
+      ...options,
+    };
+
+    const r = reactive({
+      busy: false,
+      collection: options.collection,
+      startAfter: null,
+      params: options.params,
+      data: [],
+      error: null,
+      submit() {
+        return new Promise(async (resolve, reject) => {
+          r.busy = true;
+
+          setTimeout(async () => {
+            try {
+              const db = useFirestore();
+              const collection = fireFirestore.collection(
+                db,
+                options.collection
+              );
+
+              let queryParams = [
+                collection,
+                fireFirestore.orderBy("updatedAt", "desc"),
+                fireFirestore.limit(r.params.limit),
+              ];
+
+              if (r.params.startAfter) {
+                queryParams.push(fireFirestore.startAfter(r.params.startAfter));
+              }
+
+              const first = fireFirestore.query.apply(null, queryParams);
+              const docsRef = await fireFirestore.getDocs(first);
+
+              const startAfter = docsRef.docs[docsRef.docs.length - 1] || null;
+              r.startAfter = startAfter ? startAfter.id : null;
+
+              const docsRefData = docsRef.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+
+              if (r.params.startAfter) {
+                docsRefData.map((docsRefDataItem) => {
+                  r.data.push(docsRefDataItem);
+                });
+              } else {
+                r.data = docsRefData;
+              }
+            } catch (err) {
+              reject((r.error = err.message));
+            }
+
+            r.busy = false;
+          }, 100);
+        });
+      },
+    });
+
+    return r;
+  };
+
   r.firestoreDelete = reactive({});
 
   r.databaseSave = reactive({});

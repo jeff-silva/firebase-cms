@@ -12,6 +12,10 @@
           to="/admin/auth"
           text="Auth"
         />
+        <v-list-item
+          to="/admin/test"
+          text="Test"
+        />
       </v-list>
     </div>
     <div

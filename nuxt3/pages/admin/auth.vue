@@ -104,7 +104,7 @@
         </div>
       </div>
 
-      <pre>firebase.authLogin: {{ firebase.authLogin }}</pre>
+      <pre>firebase.auth: {{ firebase.auth }}</pre>
     </div>
   </nuxt-layout>
 </template>
